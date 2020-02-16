@@ -25,6 +25,7 @@ function initAll(){
 }
 
 function initAllEmployeeNames() {
+    allEmployeeNames=[];
     orm.select("first_name, last_name", "employee", function(res){
         for (var i = 0; i < res.length; i++) {
             allEmployeeNames.push(res[i].first_name+" "+res[i].last_name);
@@ -32,6 +33,7 @@ function initAllEmployeeNames() {
     });
   }
   function initAllDepartments() {
+      allDepartments=[];
     orm.select("distinct name ", "department", function(res){
         for (var i = 0; i < res.length; i++) {
             allDepartments.push(res[i].name);
@@ -39,6 +41,7 @@ function initAllEmployeeNames() {
     });
   }
   function initManagers() {
+      allManagers=[];
         for (var i = 0; i < allEmployeeObj.length; i++) {
             var eachManager=allEmployeeObj[i].manager;
             if(eachManager!=null)
@@ -55,6 +58,7 @@ function initAllEmployeeNames() {
   }
 
   function initRoleArr(){
+      roleArr=[];
     orm.select("title", "role", function(data){
         for(var index in data){
             roleArr.push(data[index].title);
@@ -155,8 +159,50 @@ function viewAllEmployeeByManager(){
 }
 
 function addEmployee(){
+    allEmployeeNames.push("No manager");
+    inquirer
+    .prompt([
+        {
+            type: 'input',
+            name: 'firstName',
+            message: chalk.red('Enter the first name: '),
+        },
+        {
+            type: 'input',
+            name: 'lastName',
+            message: chalk.red('Enter the last name: '),
+        },
+        {
+            type: 'list',
+            name: 'role',
+            message: chalk.red('Choose the role:'),
+            choices: roleArr,
+        },
+        {
+            type: 'list',
+            name: 'manager',
+            message: chalk.red('Choose the manager:'),
+            choices: allEmployeeNames,
+        },
+    ])
+    .then(answer=>{
+        var manager=answer.manager;
+        var managerfirstName=manager.substring(0,manager.indexOf(" "));
+        var managerlastName=manager.substring(manager.indexOf(" ")+1);
 
+        orm.selectWithCondition("id", "role", "title='"+answer.role+"'", function(data){
+            var roleId=data[0].id;
+            orm.selectWithCondition("id", "employee", "first_name='"+managerfirstName+"' and last_name='"+managerlastName+"'", function(data){
+                var managerId=data[0].id;
+                orm.insertEmployee(answer.firstName, answer.lastName, roleId, managerId);
+                console.log(chalk.green("Successfully added the new employee: "+answer.firstName+" "+answer.lastName));
+                initAll();
+                promptUser();
+            })
+        })
+})
 }
+
 
 function removeEmployee(){
     inquirer
@@ -178,6 +224,7 @@ function removeEmployee(){
         promptUser();
 })
 }
+
 
 function updateEmployeeRole(){
     inquirer
@@ -206,7 +253,7 @@ function updateEmployeeRole(){
             initAll();
             promptUser();
         });
-})
+    })
 }
 
 function updatedEmployeeManager(){

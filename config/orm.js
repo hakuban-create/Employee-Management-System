@@ -35,25 +35,12 @@ var orm = {
         if(err) throw err;
       });
     },
-    create: function(table, cols, vals, cb) {
-      var queryString = "INSERT INTO " + table;
-  
-      queryString += " (";
-      queryString += cols.toString();
-      queryString += ") ";
-      queryString += "VALUES (";
-      queryString += printQuestionMarks(vals.length);
-      queryString += ") ";
-  
+    insertEmployee: function (firstName, lastName, roleId, managerId){
+      var queryString="INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('"+firstName+"', '"+lastName+"',"+roleId+","+managerId+");";
       console.log(queryString);
-  
-      connection.query(queryString, vals, function(err, result) {
-        if (err) {
-          throw err;
-        }
-  
-        cb(result);
-      });
+      connection.query(queryString, function(err, result){
+        if(err) throw err;
+      })
     }
   };
 
