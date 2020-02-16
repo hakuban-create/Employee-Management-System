@@ -7,18 +7,22 @@ const chalk=require("chalk");
 /* Preparing the choices of the prompt */
 var allOptions=["View All Employees", "View All Employees By Department",
                      "View All Employees By Manager", "Add Employee", "Remove Employee", 
-                           "Update Employee", "Update Employee Manager"];
+                           "Update Employee Role", "Update Employee Manager"];
 var allEmployeeNames=[];
 var allDepartments=[];
 var allManagers=[];
+var roleArr=[];
 var allEmployeeObj=undefined;
 var columnNamesArr=["id","first_name","last_name", "title", "name", "salary","manager"];
 
-initallEmployeeObj();
-initAllEmployeeNames();
-initAllDepartments();
+initAll();
 
-
+function initAll(){
+    initallEmployeeObj();
+    initAllEmployeeNames();
+    initAllDepartments();
+    initRoleArr();
+}
 
 function initAllEmployeeNames() {
     orm.select("first_name, last_name", "employee", function(res){
@@ -47,6 +51,14 @@ function initAllEmployeeNames() {
     orm.getAllEmployee(function(data){
         allEmployeeObj=data;
         initManagers();
+    });
+  }
+
+  function initRoleArr(){
+    orm.select("title", "role", function(data){
+        for(var index in data){
+            roleArr.push(data[index].title);
+        }
     });
   }
 
@@ -87,8 +99,12 @@ inquirer
 
 
 function viewAllEmployee(){
+    orm.getAllEmployee(function(data){
+        allEmployeeObj=data;
+        initManagers();
     printPretty(allEmployeeObj,columnNamesArr);
     promptUser();
+});
 }
 
 function viewAllEmployeeByDep(){
@@ -115,7 +131,6 @@ function viewAllEmployeeByDep(){
 }
 
 function viewAllEmployeeByManager(){
-    console.log(allManagers);
     inquirer
     .prompt([
         {
@@ -144,13 +159,88 @@ function addEmployee(){
 }
 
 function removeEmployee(){
+    inquirer
+    .prompt([
+        {
+            type: 'list',
+            name: 'selected',
+            message: chalk.red('Which employee do you want to remove?'),
+            choices: allEmployeeNames,
+        }
+    ])
+    .then(answer=>{
+        var employee=answer.selected;
+        var firstName=employee.substring(0,employee.indexOf(" "));
+        var lastName=employee.substring(employee.indexOf(" ")+1);
+        orm.delete(firstName, lastName, "employee");
+        console.log(chalk.green("Successfully removed employee: "+employee));
+        initAll();
+        promptUser();
+})
 }
 
 function updateEmployeeRole(){
-
+    inquirer
+    .prompt([
+        {
+            type: 'list',
+            name: 'selected',
+            message: chalk.red('Which employee\'s role do you want to update?'),
+            choices: allEmployeeNames,
+        },
+        {
+            type: 'list',
+            name: 'newRole',
+            message: chalk.red('Choose the new role:'),
+            choices: roleArr,
+        },
+    ])
+    .then(answer=>{
+        var employee=answer.selected;
+        var firstName=employee.substring(0,employee.indexOf(" "));
+        var lastName=employee.substring(employee.indexOf(" ")+1);
+        orm.selectWithCondition("id", "role", "title='"+answer.newRole+"'", function(data){
+            var newRoleId=data[0].id;
+            orm.update("employee", "role_id", newRoleId, "first_name='"+firstName+"' and last_name='"+lastName+"'");
+            console.log(chalk.green("Successfully updated employee "+answer.selected+" role to "+answer.newRole));
+            initAll();
+            promptUser();
+        });
+})
 }
 
 function updatedEmployeeManager(){
+    inquirer
+    .prompt([
+        {
+            type: 'list',
+            name: 'selected',
+            message: chalk.red('Which employee\'s manager do you want to update?'),
+            choices: allEmployeeNames,
+        },
+        {
+            type: 'list',
+            name: 'newManager',
+            message: chalk.red('Choose the new manager:'),
+            choices: allEmployeeNames,
+        },
+    ])
+    .then(answer=>{
+        var employee=answer.selected;
+        var newManager=answer.newManager;
+        var employeefirstName=employee.substring(0,employee.indexOf(" "));
+        var employeelastName=employee.substring(employee.indexOf(" ")+1);
+        var managerfirstName=newManager.substring(0,newManager.indexOf(" "));
+        var managerlastName=newManager.substring(newManager.indexOf(" ")+1);
+        orm.selectWithCondition("id", "employee", "first_name='"+managerfirstName+"' and last_name='"+managerlastName+"'", function(data){
+            var newManagerId=data[0].id;
+            console.log(newManagerId)
+            orm.update("employee", "manager_id", newManagerId, "first_name='"+employeefirstName+"' and last_name='"+employeelastName+"'");
+            console.log(chalk.green("Successfully updated employee "+answer.selected+" manager to "+answer.newManager));
+            initAll();
+            promptUser();
+        });
+})
 
 }
 
