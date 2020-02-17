@@ -1,8 +1,6 @@
-
-INSERT INTO department (id, name) VALUES (100,"Sales");
-INSERT INTO department (id, name) VALUES (101, "Engineering");
-INSERT INTO department (id, name) VALUES (102, "Finance");
-INSERT INTO department (id, name) VALUES (103, "Legal");
+INSERT INTO department (id, department) VALUES (101, "Engineering");
+INSERT INTO department (id, department) VALUES (102, "Finance");
+INSERT INTO department (id, department) VALUES (103, "Legal");
 
 INSERT INTO role (id, title, salary, department_id) VALUES (01,"Sales Lead", 100000,100);
 INSERT INTO role (id, title, salary, department_id) VALUES (02, "Salesperson", 80000, 100);

@@ -3,6 +3,7 @@ const mysql=require("mysql");
 const connection=require("./config/connection");
 const orm=require("./config/orm");
 const chalk=require("chalk");
+var columnify = require('columnify')
 
 /* Preparing the choices of the prompt */
 var allOptions=["View All Employees", "View All Employees By Department",
@@ -13,7 +14,7 @@ var allDepartments=[];
 var allManagers=[];
 var roleArr=[];
 var allEmployeeObj=undefined;
-var columnNamesArr=["id","first_name","last_name", "title", "name", "salary","manager"];
+var columnNamesArr=["id","first_name","last_name", "title", "department", "salary","manager"];
 
 initAll();
 
@@ -34,9 +35,9 @@ function initAllEmployeeNames() {
   }
   function initAllDepartments() {
       allDepartments=[];
-    orm.select("distinct name ", "department", function(res){
+    orm.select("distinct department ", "department", function(res){
         for (var i = 0; i < res.length; i++) {
-            allDepartments.push(res[i].name);
+            allDepartments.push(res[i].department);
           }
     });
   }
@@ -125,7 +126,7 @@ function viewAllEmployeeByDep(){
         var department=answer.selected;
         var newData=[];
         for(var i=0; i<allEmployeeObj.length; i++){
-            if(allEmployeeObj[i].name==department){
+            if(allEmployeeObj[i].department==department){
             newData.push(allEmployeeObj[i]);
             }
         }
@@ -292,14 +293,21 @@ function updatedEmployeeManager(){
 }
 
 function printPretty(data,columnNamesArr){
-    console.log(columnNamesArr.join("\t"));
-    for(var i=0; i<data.length; i++){
-        var eachRow=[];
-        for(var j=0; j<columnNamesArr.length; j++){
-            eachRow.push(data[i][columnNamesArr[j]]);
-        }
-        console.log(eachRow.join("\t"));
-    }
+    // console.log(columnNamesArr.join("\t\t"));
+    // for(var i=0; i<data.length; i++){
+    //     var eachRow=[];
+    //     for(var j=0; j<columnNamesArr.length; j++){
+    //         eachRow.push(data[i][columnNamesArr[j]]);
+    //     }
+    //     console.log(eachRow.join("\t"));
+    // }
+
+     
+    var columns = columnify(data, {
+        columns: columnNamesArr
+    })
+    
+    console.log(columns)
 
 }
 

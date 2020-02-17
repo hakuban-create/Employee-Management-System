@@ -21,7 +21,7 @@ var orm = {
         })
     },
     getAllEmployee: function(cb){
-      connection.query("SELECT e.id, e.first_name, e.last_name, r.title, d.name,  r.salary,(SELECT CONCAT(first_name,' ', last_name) FROM employee WHERE id=e.manager_id) AS manager FROM employee e JOIN role r ON e.role_id=r.id JOIN department d ON r.department_id=d.id",function(err, data){
+      connection.query("SELECT e.id, e.first_name, e.last_name, r.title, d.department,  r.salary,(SELECT CONCAT(first_name,' ', last_name) FROM employee WHERE id=e.manager_id) AS manager FROM employee e JOIN role r ON e.role_id=r.id JOIN department d ON r.department_id=d.id",function(err, data){
         if(err) throw err;
         cb(data);
     })

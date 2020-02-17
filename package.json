@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "columnify": "^1.5.4",
     "inquirer": "^7.0.4",
     "mysql": "^2.18.1"
   }
