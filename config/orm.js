@@ -41,6 +41,20 @@ var orm = {
       connection.query(queryString, function(err, result){
         if(err) throw err;
       })
+    },
+    insertRole: function (title, salary, department_id){
+      var queryString="INSERT INTO role (title, salary, department_id) VALUES ('"+title+"', '"+salary+"', "+department_id+");";
+      console.log(queryString);
+      connection.query(queryString, function(err, result){
+        if(err) throw err;
+      })
+    },
+    insertDepartment: function (department){
+      var queryString="INSERT INTO department (department) VALUES ('"+department+"');";
+      console.log(queryString);
+      connection.query(queryString, function(err, result){
+        if(err) throw err;
+      })
     }
   };
 

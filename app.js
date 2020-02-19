@@ -6,9 +6,9 @@ const chalk=require("chalk");
 var columnify = require('columnify')
 
 /* Preparing the choices of the prompt */
-var allOptions=["View All Employees", "View All Employees By Department",
-                     "View All Employees By Manager", "Add Employee", "Remove Employee", 
-                           "Update Employee Role", "Update Employee Manager"];
+var allOptions=["View All Employees","View All Roles", "View All Departments", "View All Employees By Department",
+                     "View All Employees By Manager", "Add Employee", "Add Role", "Add Department", "Remove Employee", 
+                         "Update Employee Role", "Update Employee Manager"];
 var allEmployeeNames=[];
 var allDepartments=[];
 var allManagers=[];
@@ -70,6 +70,7 @@ function initAllEmployeeNames() {
 /* end */
 
 function promptUser(){
+    console.log(chalk.red("\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"));
 inquirer
 .prompt([
     {
@@ -85,21 +86,27 @@ inquirer
     if(request==allOptions[0]){
         viewAllEmployee();
     }else if(request==allOptions[1]){
-        viewAllEmployeeByDep();
+        viewAllRoles();
     }else if(request==allOptions[2]){
-        viewAllEmployeeByManager();
+        viewAllDepartments();
     }else if(request==allOptions[3]){
-        addEmployee();
+        viewAllEmployeeByDep();
     }else if(request==allOptions[4]){
-        removeEmployee();
+        viewAllEmployeeByManager();
     }else if(request==allOptions[5]){
-        updateEmployeeRole();
+        addEmployee();
     }else if(request==allOptions[6]){
+        addRole();
+    }else if(request==allOptions[7]){
+        addDepartment();
+    }else if(request==allOptions[8]){
+        removeEmployee();
+    }else if(request==allOptions[9]){
+        updateEmployeeRole();
+    }else if(request==allOptions[10]){
         updatedEmployeeManager();
     }
 });
-
-
 }
 
 
@@ -110,6 +117,20 @@ function viewAllEmployee(){
     printPretty(allEmployeeObj,columnNamesArr);
     promptUser();
 });
+}
+
+function viewAllRoles(){
+    orm.select("*", "role", function(data){
+    printPretty(data,["id", "title", "salary", "department_id"]);
+    promptUser();
+});
+}
+
+function viewAllDepartments(){
+    orm.select("*", "department", function(data){
+        printPretty(data,["id", "department"]);
+        promptUser();
+    });
 }
 
 function viewAllEmployeeByDep(){
@@ -204,6 +225,57 @@ function addEmployee(){
 })
 }
 
+function addRole(){
+    inquirer
+    .prompt([
+        {
+            type: 'input',
+            name: 'title',
+            message: chalk.red('Enter the title of the role: '),
+        },
+        {
+            type: 'input',
+            name: 'salary',
+            message: chalk.red('Enter the salary for the role: '),
+        },
+        {
+            type: 'list',
+            name: 'departmentName',
+            message: chalk.red('Choose the department for the role:'),
+            choices: allDepartments,
+        },
+    ])
+    .then(answer=>{
+
+        orm.selectWithCondition("id", "department", "department='"+answer.departmentName+"'", function(data){
+            var departmentId=data[0].id;
+
+                orm.insertRole(answer.title, answer.salary, departmentId);
+                console.log(chalk.green("Successfully added the new role: "+answer.title));
+                initAll();
+                promptUser();
+            
+        })
+})
+}
+
+function addDepartment(){
+    inquirer
+    .prompt([
+        {
+            type: 'input',
+            name: 'departmentName',
+            message: chalk.red('Enter the name of the new Department:'),
+        },
+    ])
+    .then(answer=>{
+                orm.insertDepartment(answer.departmentName);
+                console.log(chalk.green("Successfully added the Department: "+answer.departmentName));
+                initAll();
+                promptUser();
+            
+})
+}
 
 function removeEmployee(){
     inquirer
@@ -225,7 +297,6 @@ function removeEmployee(){
         promptUser();
 })
 }
-
 
 function updateEmployeeRole(){
     inquirer
@@ -292,17 +363,7 @@ function updatedEmployeeManager(){
 
 }
 
-function printPretty(data,columnNamesArr){
-    // console.log(columnNamesArr.join("\t\t"));
-    // for(var i=0; i<data.length; i++){
-    //     var eachRow=[];
-    //     for(var j=0; j<columnNamesArr.length; j++){
-    //         eachRow.push(data[i][columnNamesArr[j]]);
-    //     }
-    //     console.log(eachRow.join("\t"));
-    // }
-
-     
+function printPretty(data,columnNamesArr){     
     var columns = columnify(data, {
         columns: columnNamesArr
     })
